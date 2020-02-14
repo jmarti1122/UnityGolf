@@ -1,0 +1,247 @@
+************************BALL*************************
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+
+public class ballhit : MonoBehaviour {
+    public float moveSpeed;
+    public float yForce;
+    public float xForce;
+    public float zForce;
+    public Scrollbar Healthbar;
+    public Scrollbar Rightbar;
+    public Scrollbar Leftbar;
+    private bool EXTEST;
+    
+
+
+    
+    public float dampenForce;
+    public Transform  cube;
+    public Transform Flag;
+    public Transform Aim;
+    private float Direction;
+    private float ClubSelect;
+    private float ClubPower;
+    public float detectionRange;
+    public float detectionRangehole;
+    private bool closeEnough;
+    private bool inthehole;
+    public Camera Camera1;
+    public Camera Camera2;
+    private bool grounded;
+    private int strokecount;
+    private float rotatenumber;
+    private Vector3 CurrentAim;
+    private Vector3 TargetAimPos;
+    private Vector3 Powervector;
+    private Vector3 negPowerVector;
+
+	void Start () {
+        Camera2.enabled = false;
+        Camera1.enabled = true;
+        strokecount = 0;
+        rotatenumber = 0;
+        CurrentAim = Aim.transform.position;
+        EXTEST = true;
+
+    }
+
+
+    private void OnGUI()
+    {
+        GUI.Label(new Rect(240, 15, 100, 100), "Stoke Count " + strokecount);
+       if (GUI.Button(new Rect(15, 15, 100, 25), "Start Swing"))
+            {
+            EXTEST = true;
+            }
+       if (GUI.Button(new Rect(15,40,100,25),"Finish Swing"))
+        {
+            EXTEST = false;
+            strokecount += 1;
+          
+        }
+       if (GUI.Button(new Rect(15,180,100,25), "Aim Left"))
+        {
+          
+            rotatenumber += Vector3.Distance(cube.position, Flag.position) / 10.0f;
+            
+            
+
+        }
+    
+        if (GUI.Button(new Rect(15, 205, 100, 25), "Aim Right"))
+        {
+          
+            rotatenumber += Vector3.Distance(cube.position, Flag.position) / 10.0f *-1;
+
+        }
+        if (GUI.Button(new Rect(185, 15, 100, 25), "Driver"))
+        {
+            ClubSelect = 1;
+            ClubPower = 1;
+        }
+        if (GUI.Button(new Rect(185, 40, 100, 25), "Iron"))
+        {
+            ClubSelect = 1.03f;
+            ClubPower = 0.7f;
+        }
+        if (GUI.Button(new Rect(185, 65, 100, 25), "Wedge"))
+        {
+            ClubSelect = 1.06f;
+            ClubPower = 0.4f;
+        }
+        if (GUI.Button(new Rect(185, 90, 100, 25), "Putter"))
+        {
+            ClubSelect = 0.0f;
+            ClubPower = 0.2f;
+        }
+        if (closeEnough == true && grounded == true)
+        {
+            Camera1.enabled = false;
+            Camera2.enabled = true;
+
+        }
+        if(inthehole == true && grounded == true)
+        {
+            GUI.Label(new Rect(80, 160, 200, 200), "What a SHOT! Hole Completed");
+            if (GUI.Button(new Rect(80, 15, 100, 100), "Quit"))
+                {
+                Closegame();
+                }
+        }
+        if(strokecount >= 10 && grounded == true)
+        {
+            GUI.Label(new Rect(80, 160, 200, 200), "Out of Strokes");
+            if (GUI.Button(new Rect(80, 15, 100, 100), "Quit"))
+            {
+                Closegame();
+            }
+        }
+    }
+
+
+    void Closegame()
+    {
+        Application.Quit();
+    }
+   
+ 
+    void Update () {
+        float h = Input.GetAxis("Horizontal") * moveSpeed;
+        Healthbar.size = xForce / 4000;
+        Rightbar.size = rotatenumber;
+        Leftbar.size = rotatenumber *-1;
+        cube.position = GetComponent<Rigidbody>().transform.position;
+        transform.Translate(Vector3.right * h * Time.deltaTime);
+        
+        Aim.transform.LookAt(GetComponent<Rigidbody>().transform.position);
+        cube.transform.LookAt(Aim);
+        TargetAimPos = new Vector3(0, 0, rotatenumber);
+        Aim.transform.position = CurrentAim + TargetAimPos;
+        if (GetComponent<Rigidbody>().velocity.y <= 0.3 && GetComponent<Rigidbody>().velocity.y >=-0.3)
+
+        {
+            grounded = true;
+            
+        }
+      
+        
+        
+  
+        if (EXTEST == true) 
+        {
+            xForce += 20.0f * ClubPower;
+            yForce += 10.0f * ClubSelect;
+            Direction += TargetAimPos.z;
+
+            Debug.Log("Cube Rotation " + cube.rotation.y);
+            
+            
+           
+            
+
+        }
+        
+       
+       
+        if (EXTEST == false)
+        {
+
+            GetComponent<Rigidbody>().AddForce(new Vector3(xForce, yForce, Direction));
+            xForce = 0;
+            yForce = 0;
+            Direction = 0;
+
+            
+
+        }
+
+        closeEnough = false;
+        if (Vector3.Distance(GetComponent<Rigidbody>().position, Flag.transform.position) <= detectionRange)
+        {
+            closeEnough = true;
+        }
+        inthehole = false;
+        if (Vector3.Distance(GetComponent<Rigidbody>().position, Flag.transform.position) <= detectionRangehole)
+        {
+            inthehole = true;
+        }
+
+
+ 
+
+}
+   
+
+}
+
+******************PUTTER**************************
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Putter : MonoBehaviour {
+    public GameObject PutterPrefab;
+    public Transform PutterSpawn;
+
+    
+    // Use this for initialization
+    void Start () {
+
+        
+	}
+   
+
+    // Update is called once per frame
+    void Update () {
+        var x = Input.GetAxis("Horizontal") * Time.deltaTime * 150.0f;
+        var z = Input.GetAxis("Vertical") * Time.deltaTime * 3.0f;
+
+        transform.Rotate(0, x, 0);
+        transform.Translate(0, 0, z);
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            Fire();
+
+        }
+      
+	}
+    void Fire ()
+    {
+        var putter = (GameObject)Instantiate(PutterPrefab, PutterSpawn.position, PutterSpawn.rotation);
+        putter.GetComponent<Rigidbody>().velocity = putter.transform.forward * 6;
+        Destroy(putter, 1.0f);
+
+
+
+
+    }
+    private void OnCollisionEnter(Collision collision)
+    {
+       
+    }
+}
