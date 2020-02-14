@@ -1,0 +1,172 @@
+using UnityEngine;
+using System.Collections;
+
+public class paddlescript : MonoBehaviour {
+	public float paddlespeed =10f;
+	public GameObject ballprefab;
+	public Camera camOne;
+	public Camera camTwo;
+
+	GameObject theball = null;
+	
+	void Start () {
+		spawnball ();
+	}
+	public void spawnball() {
+		
+		theball = (GameObject) Instantiate (ballprefab);
+
+	}
+
+
+	void Update () {
+		if (Input.GetAxis ("Vertical")<0) {
+			Debug.Log ("Left");
+
+			transform.Translate (0, 0, -paddlespeed * Time.deltaTime);
+		}
+		if (Input.GetAxis ("Vertical")>0) {
+			Debug.Log ("right");
+			transform.Translate (0, 0, paddlespeed * Time.deltaTime);
+		}
+		if (Input.GetAxis ("Horizontal") < 0) {
+			Debug.Log ("Back");
+			transform.Translate (-paddlespeed * Time.deltaTime,0,0);
+		}
+		if (Input.GetAxis ("Horizontal") > 0) {
+			Debug.Log ("Forward");
+			transform.Translate (paddlespeed * Time.deltaTime,0,0);
+		}
+		if (theball) {
+			Rigidbody ballrigidbody = theball.GetComponent<Rigidbody> ();
+
+			ballrigidbody.position = transform.position + new Vector3(0,1f,0);
+			if (Input.GetKey(KeyCode.Space)) {
+			
+				ballrigidbody.GetComponent<Rigidbody> ().isKinematic = false;
+				ballrigidbody.GetComponent<Rigidbody> ().AddForce (0, 650f, 0);
+				theball = null;
+			}
+		}
+		if (Input.GetKey (KeyCode.B)) {
+			camOne.enabled = true;
+			camTwo.enabled = false;
+
+		}
+		if (Input.GetKey (KeyCode.V)) {
+			camOne.enabled = false;
+			camTwo.enabled = true;
+		}
+
+	}
+
+
+			
+	void OnCollisionEnter ( Collision col ) {
+		foreach (ContactPoint contact in col.contacts) {
+			if (contact.thisCollider == GetComponent<Collider>() ) {
+				float english = contact.point.z - transform.position.z;
+				float venglish = contact.point.x - transform.position.x;
+				contact.otherCollider.GetComponent<Rigidbody> ().AddForce (100f * venglish, 0, 100f * english);
+			}
+		}
+	}
+			
+	
+}
+
+
+using UnityEngine;
+using System.Collections;
+
+public class Deathscript : MonoBehaviour {
+
+	void Start () {
+	
+	}
+	
+	
+	void Update () {
+
+	}
+	void OnTriggerEnter(Collider Other) {
+		ballscript ballscript = Other.GetComponent<ballscript> ();
+		if (ballscript) {
+			ballscript.die ();
+		}
+		
+	}
+}
+
+
+using UnityEngine;
+using System.Collections;
+
+public class camerascript : MonoBehaviour {
+	public Camera[] cams;
+
+
+	public void camMainMove (){
+		cams [0].enabled = true;
+		cams [1].enabled = false;
+		cams [2].enabled = false;
+	}
+	public void camOneMove (){
+		cams [0].enabled = false;
+		cams [1].enabled = true;
+		cams [2].enabled = false;
+	}
+	public void camTwoMove (){
+		cams [0].enabled = false;
+		cams [1].enabled = false;
+		cams [2].enabled = true;
+	}
+	void update(){
+		if (Input.GetKey (KeyCode.B)) {
+			Debug.Log ("B pressed");
+		}
+	}
+}
+
+using UnityEngine;
+using System.Collections;
+
+public class brickscript : MonoBehaviour {
+
+	void Start () {
+	
+	}
+	
+	void Update () {
+	
+	}
+	void OnCollisionEnter(Collision col ) {
+		Destroy (gameObject);
+
+
+	}
+		
+}
+
+
+using UnityEngine;
+using System.Collections;
+
+public class ballscript : MonoBehaviour {
+
+	void Start () {
+		
+
+	}
+	
+	void Update () {
+	
+	}
+	public void die (){
+		Destroy (gameObject);
+		GameObject paddleObject = GameObject.Find ("Paddle");
+		paddlescript paddlescript =  paddleObject.GetComponent<paddlescript> ();
+		paddlescript.spawnball ();
+	}
+}
+
